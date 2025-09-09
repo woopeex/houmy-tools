@@ -8,11 +8,13 @@ DEFAULT_RELOAD_PACKAGES = ['gui', 'core']
 
 
 def unload(silent=True, packages=None):
-    ''' performs unloading. 
-            * silent flag specifies if utility should print the unloaded modules
-            * packages: array of packages to unload. specify None to use 
-                defaults (DEFAULT_RELOAD_PACKAGES variable)
-    '''
+    """
+    Performs unloading of specified packages from sys.modules.
+
+    Args:
+        silent (bool): If True, suppresses printing of unloaded modules. If False, prints each unloaded module.
+        packages (list or None): List of package names to unload. If None, uses DEFAULT_RELOAD_PACKAGES.
+    """
     
     if packages is None:
         packages = DEFAULT_RELOAD_PACKAGES
