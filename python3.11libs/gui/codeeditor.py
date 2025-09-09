@@ -34,9 +34,7 @@ class CodeEditor(QtWidgets.QPlainTextEdit):
         self.highlightCurrentLine()
 
         font = QtGui.QFont()
-        """
-        Not sure about the default font, need to investigate!
-        """
+        # TODO: Investigate the best default font for the code editor.
         font.setFamily("Courier New")
         font.setPointSize(12)
         self.setFont(font)
@@ -104,7 +102,7 @@ class CodeEditor(QtWidgets.QPlainTextEdit):
             self.setTextCursor(cursor)
             return
 
-            # Auto-complete quotes
+        # Auto-complete quotes
         if text == '"' or text == "'":
             cursor.beginEditBlock()
             cursor.insertText(text + text)

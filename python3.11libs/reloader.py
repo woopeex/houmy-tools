@@ -18,7 +18,7 @@ def unload(silent=True, packages=None):
         packages = DEFAULT_RELOAD_PACKAGES
         
     # construct reload list
-    reloadList =[] 
+    reloadList = [] 
     for i in sys.modules.keys():
         for package in packages:
             if i.startswith(package):
