@@ -1,0 +1,10 @@
+{
+  "load_package_once": true,
+  "path": "path-to-houmy-tools-download-folder",
+
+  "env": [
+        {
+            "HOUMY_TOOLS": "path-to-houmy-tools-download-folder"
+        }
+    ]
+}
