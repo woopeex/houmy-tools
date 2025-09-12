@@ -1,0 +1,12 @@
+<menuDocument>
+    <menu>
+        <separatorItem/>
+        <scriptItem id="houmy_toos_m_one">
+            <label>One</label>
+            <parent>root_menu</parent>
+            <insertAfter />
+            <scriptPath>$HOUMY_TOOLS/scripts/menumanager.py</scriptPath>
+        </scriptItem>
+        <separatorItem/>
+    </menu>
+</menuDocument>
