@@ -1,5 +1,5 @@
 import hou
-
+from pyro2 import xferLinkParm
 
 class NodeManager:
     """
@@ -64,8 +64,10 @@ class NodeManager:
 
             cparm = node.parm(clonedParmTemplate.name())
 
-            r = cparm.evalAsRamp()
-            sourceParm.set(r.keys(), r.values(), r.basis())
+            xferLinkParm(cparm, sourceParm, True)
+
+            # r = cparm.evalAsRamp()
+            # sourceParm.set(r.keys(), r.values(), r.basis())
 
             #sourceParm.set(cparm)
 
