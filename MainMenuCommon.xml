@@ -1,21 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mainMenu>
-  <menuBar>
-    <subMenu>
-    <insertBefore>help_menu</insertBefore>
-      <label>HouMy Tools</label>
-        <scriptItem id="houmy_tools_app">
-        <label>Snippet Manager</label>
-          <scriptCode>
-            <![CDATA[
+    <menuBar>
+        <subMenu>
+            <insertBefore>help_menu</insertBefore>
+            <label>HouMy Tools</label>
+            <scriptItem id="houmy_tools_app">
+                <label>Snippet Manager</label>
+                <scriptCode>
+                    <![CDATA[
 import reloader as rl
 rl.unload()
 from gui.snippetmanager import SnippetManager
 window = SnippetManager(hou.qt.mainWindow())
 window.show()
                         ]]>
-                    </scriptCode>
-      </scriptItem>
-    </subMenu>
-  </menuBar>
+                </scriptCode>
+            </scriptItem>
+            <separatorItem/>
+            <scriptItem id="houmy_tools_reload">
+                <label>Reload</label>
+                <scriptCode>
+                    <![CDATA[
+import reloader as rl
+rl.unload()
+                        ]]>
+                </scriptCode>
+            </scriptItem>
+        </subMenu>
+    </menuBar>
 </mainMenu> 

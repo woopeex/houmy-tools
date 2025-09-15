@@ -11,6 +11,64 @@ class NodeManager:
     # Defines which node kinds have a 'class' (Run Over) parameter for sub-categorization
     KINDS_WITH_RUNOVER = ["attribwrangle"]
 
+    @staticmethod
+    def nodesUnderCursor(eps = 0.5):
+        pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+        if pane:
+
+            networkPos = pane.cursorPosition()
+            screenPos = pane.posToScreen(networkPos)
+
+            topLeft = hou.Vector2(screenPos[0] - eps, screenPos[1] + eps)
+            botRight = hou.Vector2(screenPos[0] + eps, screenPos[1] - eps)
+
+            return pane.networkItemsInBox(topLeft, botRight, for_drop=True, for_select=False)
+
+        return None
+
+    @staticmethod
+    def createControlAttribute(sourceParm = None):
+
+        if sourceParm is None:
+            return
+
+        print(sourceParm, type(sourceParm))
+
+        nodes = NodeManager.nodesUnderCursor()
+        if nodes:
+            node = nodes[0][0]
+
+            sourceParmTemplate = sourceParm.parmTemplate()
+
+            #print(pt.asCode())
+
+            name = sourceParmTemplate.name()
+            # get existing list of parameters for the specified node
+            g = node.parmTemplateGroup()
+            if g.find(name):
+                return
+
+            clonedParmTemplate = sourceParmTemplate.clone()
+
+            # build relative path from tgt_node to src_parm
+
+            # relative_path = parm.node().relativePathTo(node)
+            # expression = f'ch("{relative_path}/{clonedParmTemplate.name()}")'
+            # parm.setExpression(expression, language=hou.exprLanguage.Hscript)
+
+            # append the new parameter to the list
+            g.append(clonedParmTemplate)
+
+            # apply changes
+            node.setParmTemplateGroup(g)
+
+            cparm = node.parm(clonedParmTemplate.name())
+
+            r = cparm.evalAsRamp()
+            sourceParm.set(r.keys(), r.values(), r.basis())
+
+            #sourceParm.set(cparm)
+
     def getCodeParmName(self, nodeType):
         """Returns the correct code parameter name for a given node type."""
         if nodeType == "python":
