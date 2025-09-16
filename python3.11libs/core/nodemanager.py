@@ -1,5 +1,5 @@
 import hou
-from pyro2 import xferLinkParm
+from core.utils import linkParameters
 
 class NodeManager:
     """
@@ -39,9 +39,6 @@ class NodeManager:
             node = nodes[0][0]
 
             sourceParmTemplate = sourceParm.parmTemplate()
-
-            #print(pt.asCode())
-
             name = sourceParmTemplate.name()
             # get existing list of parameters for the specified node
             g = node.parmTemplateGroup()
@@ -49,12 +46,6 @@ class NodeManager:
                 return
 
             clonedParmTemplate = sourceParmTemplate.clone()
-
-            # build relative path from tgt_node to src_parm
-
-            # relative_path = parm.node().relativePathTo(node)
-            # expression = f'ch("{relative_path}/{clonedParmTemplate.name()}")'
-            # parm.setExpression(expression, language=hou.exprLanguage.Hscript)
 
             # append the new parameter to the list
             g.append(clonedParmTemplate)
@@ -64,12 +55,7 @@ class NodeManager:
 
             cparm = node.parm(clonedParmTemplate.name())
 
-            xferLinkParm(cparm, sourceParm, True)
-
-            # r = cparm.evalAsRamp()
-            # sourceParm.set(r.keys(), r.values(), r.basis())
-
-            #sourceParm.set(cparm)
+            linkParameters(cparm, sourceParm, True)
 
     def getCodeParmName(self, nodeType):
         """Returns the correct code parameter name for a given node type."""
