@@ -1,6 +1,7 @@
 import hou
 from core.utils import linkParameters
 
+
 class NodeManager:
     """
     Handles all direct interactions with Houdini nodes, keeping the UI
@@ -12,52 +13,57 @@ class NodeManager:
     KINDS_WITH_RUNOVER = ["attribwrangle"]
 
     @staticmethod
-    def nodesUnderCursor(eps = 0.5):
-        pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
-        if pane:
-
+    def nodesUnderCursor(eps=0.5):
+        pane = hou.ui.paneTabUnderCursor()
+        if pane and pane.type() == hou.paneTabType.NetworkEditor:
             networkPos = pane.cursorPosition()
             screenPos = pane.posToScreen(networkPos)
 
             topLeft = hou.Vector2(screenPos[0] - eps, screenPos[1] + eps)
             botRight = hou.Vector2(screenPos[0] + eps, screenPos[1] - eps)
 
-            return pane.networkItemsInBox(topLeft, botRight, for_drop=True, for_select=False)
+            netItems = pane.networkItemsInBox(topLeft, botRight, for_drop=True, for_select=False)
+
+            # Filters the output of hou.NetworkEditor.networkItemsInBox to return only nodes.
+            return tuple(item[0] for item in netItems if isinstance(item, tuple) and len(item) > 1 and item[1] == 'node')
 
         return None
 
     @staticmethod
-    def createControlAttribute(sourceParm = None):
+    def createControlParm(sourceParm=None):
+
+        pane = hou.ui.paneTabUnderCursor()
+        if not pane or pane.type() != hou.paneTabType.NetworkEditor:
+            # hou.ui.displayMessage("A Network Editor pane must be under the cursor.",
+            #                       severity=hou.severityType.Error)
+            return
 
         if sourceParm is None:
             return
 
-        print(sourceParm, type(sourceParm))
-
         nodes = NodeManager.nodesUnderCursor()
-        if nodes:
-            node = nodes[0][0]
+        if not nodes or len(nodes) > 1:
+            return
 
-            sourceParmTemplate = sourceParm.parmTemplate()
-            name = sourceParmTemplate.name()
-            # get existing list of parameters for the specified node
-            g = node.parmTemplateGroup()
-            if g.find(name):
-                return
+        node = nodes[0]
 
-            clonedParmTemplate = sourceParmTemplate.clone()
+        sourceParmTemplate = sourceParm.parmTemplate()
+        name = sourceParmTemplate.name()
+        # get existing list of parameters for the specified node
+        g = node.parmTemplateGroup()
+        if g.find(name):
+            return
 
-            # append the new parameter to the list
-            g.append(clonedParmTemplate)
+        clonedParmTemplate = sourceParmTemplate.clone()
+        # append the new parameter to the list
+        g.append(clonedParmTemplate)
+        # apply changes
+        node.setParmTemplateGroup(g)
+        cparm = node.parm(clonedParmTemplate.name())
+        linkParameters(cparm, sourceParm, True)
 
-            # apply changes
-            node.setParmTemplateGroup(g)
-
-            cparm = node.parm(clonedParmTemplate.name())
-
-            linkParameters(cparm, sourceParm, True)
-
-    def getCodeParmName(self, nodeType):
+    @staticmethod
+    def getCodeParmName(nodeType):
         """Returns the correct code parameter name for a given node type."""
         if nodeType == "python":
             return "python"
