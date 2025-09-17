@@ -191,4 +191,3 @@ class NodeManager:
             if snippet.runover in DEFAULT_NODE_TYPES:
                 runOverIndex = DEFAULT_NODE_TYPES.index(snippet.runover)
                 node.parm("class").set(runOverIndex)
-

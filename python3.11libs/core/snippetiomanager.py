@@ -7,8 +7,8 @@ from collections import namedtuple
 
 from core.settings import Settings
 
-# Added 'kind' to the Snippet definition to store the node type
-Snippet = namedtuple('Snippet', ['id', 'name', 'desc', 'author', 'runover', 'expression', 'kind'])
+# Removed 'desc' and 'author' from the Snippet definition
+Snippet = namedtuple('Snippet', ['id', 'name', 'runover', 'expression', 'kind'])
 
 
 class SnippetIOManager:
@@ -17,12 +17,12 @@ class SnippetIOManager:
     Uses Settings to handle application preferences and includes a rolling backup system.
     """
 
-    SNIPPETS_DB_VERSION = 1.1  # Incremented version for the new data structure
+    SNIPPETS_DB_VERSION = 1.2  # Incremented version for the new data structure
     EMPTY_SNIPPETS_DATA = {
         "version": SNIPPETS_DB_VERSION,
         "snippets": []
     }
-    MAX_BACKUPS = 5  # The number of rolling backup files to keep
+    MAX_BACKUPS = 5
 
     def __init__(self):
         self.settings = Settings()
@@ -30,7 +30,7 @@ class SnippetIOManager:
     def snippetToDict(self, obj):
         """
         Recursively convert a namedtuple (Snippet) or other objects to a
-        JSON-serializable dictionary. Handles nested structures and UUID objects.
+        JSON-serializable dictionary.
         """
         if isinstance(obj, uuid.UUID):
             return str(obj)
@@ -58,11 +58,9 @@ class SnippetIOManager:
         """
         Saves the given database file path to the settings.
         """
-        snippetData = self.EMPTY_SNIPPETS_DATA
-
         if not os.path.exists(dbPath):
             with open(dbPath, "w") as f:
-                json.dump(snippetData, f, indent=4)
+                json.dump(self.EMPTY_SNIPPETS_DATA, f, indent=4)
 
         self.settings.saveValue("snippets_database", "path", dbPath)
 
@@ -78,23 +76,16 @@ class SnippetIOManager:
             outSnippets = {}
             with open(dbPath, "r") as f:
                 data = json.load(f)
-                snippets = data.get('snippets', None)
+                snippets = data.get('snippets', [])
 
-                if snippets is None:
-                    return {}
-
-                for snippet in snippets:
-                    # Safely get the 'kind', defaulting for backward compatibility
-                    kind = snippet.get('kind', 'attribwrangle')
-
+                for snippetData in snippets:
+                    # Load only the fields that still exist, ignoring old ones
                     s = Snippet(
-                        snippet['id'],
-                        snippet['name'],
-                        snippet['desc'],
-                        snippet['author'],
-                        snippet['runover'],
-                        snippet['expression'],
-                        kind
+                        snippetData['id'],
+                        snippetData.get('name', 'Untitled'),
+                        snippetData.get('runover', 'N/A'),
+                        snippetData.get('expression', ''),
+                        snippetData.get('kind', 'attribwrangle')
                     )
                     outSnippets[s.id] = s
 
@@ -155,7 +146,6 @@ class SnippetIOManager:
                 json.dump(outSnippetData, f, indent=4)
 
             shutil.move(tempPath, dbPath)
-
             return True
         except (IOError, TypeError) as e:
             hou.ui.displayMessage(f"Error saving snippet database to '{dbPath}': {e}", severity=hou.severityType.Error)

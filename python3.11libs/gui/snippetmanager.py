@@ -97,14 +97,10 @@ class SnippetManager(QtWidgets.QWidget):
         self.typeCombo = None
         self.kindCombo = None
         self.runOverLabel = None
-        self.authorEdit = None
-        self.descEdit = None
         self.nameEdit = None
         self.proxyModel = None
         self.snippetPreview = None
         self.treeView = None
-        self.previewDescEdit = None
-        self.previewAuthorEdit = None
         self.databasePath = None
 
         self.snippetDatabase = None
@@ -158,18 +154,6 @@ class SnippetManager(QtWidgets.QWidget):
         detailsLayout.setContentsMargins(3, 3, 3, 3)
         detailsLayout.setSpacing(5)
 
-        self.previewDescEdit = QtWidgets.QLineEdit()
-        self.previewDescEdit.setReadOnly(True)
-        self.previewDescEdit.setPlaceholderText("Description")
-        self.previewAuthorEdit = QtWidgets.QLineEdit()
-        self.previewAuthorEdit.setReadOnly(True)
-        self.previewAuthorEdit.setPlaceholderText("Author")
-
-        infoForm = QtWidgets.QFormLayout()
-        infoForm.setContentsMargins(0, 0, 0, 5)
-        infoForm.addRow("Author:", self.previewAuthorEdit)
-        infoForm.addRow("Description:", self.previewDescEdit)
-
         self.snippetPreview = CodeEditor()
         self.snippetPreview.setReadOnly(True)
         self.previewHighlighter = SyntaxHighlighter(self.snippetPreview.document())
@@ -177,7 +161,6 @@ class SnippetManager(QtWidgets.QWidget):
         applyBtn = QtWidgets.QPushButton("Apply to Selected Node")
         applyBtn.clicked.connect(self.onApplyButtonPressed)
 
-        detailsLayout.addLayout(infoForm)
         detailsLayout.addWidget(self.snippetPreview)
         detailsLayout.addWidget(applyBtn)
 
@@ -200,10 +183,6 @@ class SnippetManager(QtWidgets.QWidget):
 
         self.nameEdit = QtWidgets.QLineEdit(w)
         self.nameEdit.setValidator(validator)
-        self.descEdit = QtWidgets.QLineEdit(w)
-        self.authorEdit = QtWidgets.QLineEdit(w)
-        self.authorEdit.setValidator(validator)
-        self.authorEdit.setPlaceholderText("myself")
 
         self.kindCombo = QtWidgets.QComboBox(w)
         self.kindCombo.addItems(self.KIND_DISPLAY_NAMES.keys())
@@ -217,8 +196,6 @@ class SnippetManager(QtWidgets.QWidget):
 
         form = QtWidgets.QFormLayout()
         form.addRow("Name", self.nameEdit)
-        form.addRow("Description", self.descEdit)
-        form.addRow("Author", self.authorEdit)
         form.addRow("Kind", self.kindCombo)
         form.addRow(self.runOverLabel, self.typeCombo)
 
@@ -261,7 +238,6 @@ class SnippetManager(QtWidgets.QWidget):
 
         for snippet in self.snippetDatabase.values():
             path = ""
-            # Find the display name for the root category
             invertedKindMap = {v: k for k, v in self.KIND_DISPLAY_NAMES.items()}
             rootCategory = invertedKindMap.get(snippet.kind, snippet.kind.capitalize())
 
@@ -292,7 +268,6 @@ class SnippetManager(QtWidgets.QWidget):
         if not isVisible:
             self.typeCombo.setCurrentIndex(-1)
         else:
-            # When the dropdown becomes visible, set a sensible default.
             pointsIndex = self.typeCombo.findText("Points")
             if pointsIndex != -1:
                 self.typeCombo.setCurrentIndex(pointsIndex)
@@ -335,8 +310,6 @@ class SnippetManager(QtWidgets.QWidget):
     def clearPreviewFields(self):
         """Clears all fields in the 'Saved Snippets' preview area."""
         self.snippetPreview.clear()
-        self.previewDescEdit.clear()
-        self.previewAuthorEdit.clear()
 
     def onTreeViewClick(self, index):
         """Handles single-click events on the tree view to preview a snippet."""
@@ -351,8 +324,6 @@ class SnippetManager(QtWidgets.QWidget):
         snippet = self.snippetDatabase.get(itemId)
         if snippet:
             self.snippetPreview.setPlainText(snippet.expression)
-            self.previewDescEdit.setText(snippet.desc)
-            self.previewAuthorEdit.setText(snippet.author)
             self.previewHighlighter.setLanguage(snippet.kind)
 
     def onTreeViewDoubleClick(self, index):
@@ -453,19 +424,16 @@ class SnippetManager(QtWidgets.QWidget):
     def onSaveButtonPressed(self):
         """Saves the current snippet in the form to the database."""
         name = self.nameEdit.text()
-        desc = self.descEdit.text()
-        author = self.authorEdit.text() or self.authorEdit.placeholderText()
         expression = self.snippetEdit.toPlainText()
-
         selectedDisplayText = self.kindCombo.currentText()
         snippetKind = self.KIND_DISPLAY_NAMES.get(selectedDisplayText)
-
         snippetType = self.typeCombo.currentText() if self.typeCombo.isVisible() else "N/A"
 
         s = Snippet(
             str(uuid.uuid4()),
-            name, desc, author,
-            snippetType, expression,
+            name,
+            snippetType,
+            expression,
             snippetKind
         )
         self.snippetDatabase[s.id] = s
